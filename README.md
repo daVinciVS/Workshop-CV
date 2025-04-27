@@ -14,18 +14,18 @@ project-folder/ ├── dataset/ │ └── images/ │ ├── George_W_
 1. Install Python 3.13.
 2. Install required libraries:
 
-```bash
 python -m pip install opencv-python numpy matplotlib scikit-learn
-
----
 
 ## How to Run
 
 ### 1. Train the Model
 
-- Edit `main.py` to set the path to your dataset:
+---
 
-```python
+Edit `main.py` to set the path to your dataset:
+
+---
+
 dataset_dir = 'D:/Computer Vision Workshop/dataset/images'
 
 ---
