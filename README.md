@@ -52,66 +52,39 @@ Example webcam prediction code:
 
 
 import cv2
-
 import pickle
 
 # Load trained pipeline
 with open('eigenface_pipeline.pkl', 'rb') as f:
-
     pipe = pickle.load(f)
 
-
 def eigenface_prediction(image_gray): 
-
     faces = detect_faces(image_gray) 
-    
     cropped_faces, selected_faces = crop_faces(image_gray, faces) 
-    
     if len(cropped_faces) == 0: 
-    
         return 'No face detected.' 
-        
     X_face = [resize_and_flatten(face) for face in cropped_faces]
-    
     X_face = np.array(X_face)
-    
     labels = pipe.predict(X_face) 
-    
     scores = get_eigenface_score(X_face)
-    
     return scores, labels, selected_faces
-    
 
 cap = cv2.VideoCapture(0)
 
-
 while True:
-
     ret, frame = cap.read()
-    
     if not ret:
-    
         break
-        
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
     result = eigenface_prediction(gray)
-    
     if result != 'No face detected.':
-    
         scores, labels, coords = result
-        
         frame = draw_result(frame, scores, labels, coords)
-        
     cv2.imshow('Real-Time Face Recognition', frame)
-    
     if cv2.waitKey(1) & 0xFF == ord('q'):
-    
         break
-
 
 cap.release()
-
 cv2.destroyAllWindows()
 
 
