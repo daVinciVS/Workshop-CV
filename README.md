@@ -20,15 +20,12 @@ python -m pip install opencv-python numpy matplotlib scikit-learn
 
 ### 1. Train the Model
 
----
+
 
 Edit `main.py` to set the path to your dataset:
 
----
-
 dataset_dir = 'D:/Computer Vision Workshop/dataset/images'
 
----
 
 Run the training script:
 
