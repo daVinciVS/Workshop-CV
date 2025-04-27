@@ -1,3 +1,4 @@
+# Import required libraries
 import os
 import cv2
 import numpy as np
@@ -6,17 +7,19 @@ import pickle
 
 # 1. Load Images
 def load_image(image_path):
-    image = cv2.imread(image_path)
+    image = cv2.imread(image_path)  # Read image from path
     if image is None:
         print(f'Error: Could not load image {image_path}')
         return None, None
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
     return image, gray
 
+# Directory containing dataset images
 dataset_dir = r'D:\Computer Vision Workshop\dataset\images'
 images = []
 labels = []
 
+# Walk through dataset directory and load images
 for root, dirs, files in os.walk(dataset_dir):
     if len(files) == 0:
         continue
@@ -25,11 +28,12 @@ for root, dirs, files in os.walk(dataset_dir):
         if image is None:
             continue
         images.append(image)
-        labels.append(os.path.basename(root))
+        labels.append(os.path.basename(root))  # Use folder name as label
 
 print(f'Total images loaded: {len(labels)}')
 
 # 2. Face Detection
+# Load OpenCV's built-in face detector (Haar Cascade)
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 def detect_faces(image_gray, scale_factor=1.1, min_neighbors=5, min_size=(30, 30)):
@@ -50,22 +54,24 @@ def crop_faces(image_gray, faces, return_all=False):
                 selected_faces.append((x, y, w, h))
                 cropped_faces.append(image_gray[y:y+h, x:x+w])
         else:
+            # Pick the largest face (by area)
             x, y, w, h = max(faces, key=lambda rect: rect[2] * rect[3])
             selected_faces.append((x, y, w, h))
             cropped_faces.append(image_gray[y:y+h, x:x+w])
     return cropped_faces, selected_faces
 
 # 3. Preprocessing
-face_size = (128, 128)
+face_size = (128, 128)  # Size to resize face images
 
 def resize_and_flatten(face):
-    face_resized = cv2.resize(face, face_size)
-    face_flattened = face_resized.flatten()
+    face_resized = cv2.resize(face, face_size)  # Resize face
+    face_flattened = face_resized.flatten()     # Flatten to 1D vector
     return face_flattened
 
-x = []
-y = []
+x = []  # Flattened faces
+y = []  # Labels
 
+# Process images: detect, crop, resize, flatten
 for image, label in zip(images, labels):
     faces = detect_faces(image)
     cropped_faces, _ = crop_faces(image, faces)
@@ -87,8 +93,10 @@ from sklearn.svm import SVC
 from sklearn.decomposition import PCA
 from sklearn.metrics import classification_report
 
+# Split dataset into training and testing
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=177, stratify=y)
 
+# Create custom mean-centering transformer
 class MeanCentering(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         self.mean_face = np.mean(X, axis=0)
@@ -96,26 +104,33 @@ class MeanCentering(BaseEstimator, TransformerMixin):
     def transform(self, X):
         return X - self.mean_face
 
+# Create pipeline: Centering -> PCA -> SVM
 pipe = Pipeline([
     ('centering', MeanCentering()),
     ('pca', PCA(svd_solver='randomized', whiten=True, random_state=177)),
     ('svc', SVC(kernel='linear', random_state=177))
 ])
 
+# Train model
 pipe.fit(X_train, y_train)
+
+# Predict and evaluate model
 y_pred = pipe.predict(X_test)
 print(classification_report(y_test, y_pred))
 
 # 5. Save Model
+# Save trained pipeline to file
 with open('eigenface_pipeline.pkl', 'wb') as f:
     pickle.dump(pipe, f)
 
 # 6. Real-Time Face Recognition
+# Helper function to get SVM scores
 def get_eigenface_score(X):
-    X_pca = pipe[:2].transform(X)
+    X_pca = pipe[:2].transform(X)  # Apply centering and PCA
     eigenface_scores = np.max(pipe[2].decision_function(X_pca), axis=1)
     return eigenface_scores
 
+# Predict label for a grayscale image
 def eigenface_prediction(image_gray):
     faces = detect_faces(image_gray)
     cropped_faces, selected_faces = crop_faces(image_gray, faces)
@@ -134,6 +149,7 @@ def eigenface_prediction(image_gray):
     
     return scores, labels, selected_faces
 
+# Drawing helper functions
 def draw_text(image, label, score, pos=(0, 0), 
               font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.6, font_thickness=2,
               text_color=(0, 0, 0), text_color_bg=(0, 255, 0)):
@@ -161,13 +177,14 @@ if not cap.isOpened():
 
 print("Press ESC to exit.")
 
+# Webcam loop
 while True:
     ret, frame = cap.read()
     if not ret:
         print('Error: Cannot read frame')
         break
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
     scores, labels, coords = eigenface_prediction(gray)
 
     if labels is not None:
@@ -175,8 +192,9 @@ while True:
 
     cv2.imshow('Real-Time Face Recognition', frame)
 
-    if cv2.waitKey(1) & 0xFF == 27:  # ESC key to stop
+    if cv2.waitKey(1) & 0xFF == 27:  # Press ESC key to exit
         break
 
+# Release camera and close windows
 cap.release()
 cv2.destroyAllWindows()
