@@ -94,5 +94,7 @@ Press Q on your keyboard to quit the webcam window.
 
 ## Notes
 Adding New People: Add new folders inside dataset/images/ and retrain.
+
 No Face Detected?: Ensure good lighting and correct webcam settings.
+
 Model Size: PCA is used to reduce image dimensionality for faster processing.
