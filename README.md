@@ -17,28 +17,48 @@ project-folder/ ├── dataset/ │ └── images/ │ ├── George_W_
 ```bash
 python -m pip install opencv-python numpy matplotlib scikit-learn
 
+---
+
 ## How to Run
 # 1. Train the Model
 
 Edit main.py to set the path to your dataset:
+
+---
+
 dataset_dir = 'D:/Computer Vision Workshop/dataset/images'
 
+---
+
 Run the training script:
+
+---
+
 python main.py
+
+---
 
 This will:
 Detect faces from the dataset
 Train an Eigenface-based SVM classifier
 Save the trained model pipeline to eigenface_pipeline.pkl
 
+---
+
 # 2. Real-Time Recognition with Webcam
+
+---
 
 After training:
 Load the trained model
 Capture frames from your webcam
 Detect and recognize faces in real-time
 
+---
+
 Example webcam prediction code:
+
+---
 
 import cv2
 import pickle
@@ -77,7 +97,11 @@ cap.release()
 cv2.destroyAllWindows()
 
 
+---
+
 Press Q on your keyboard to quit the webcam window.
+
+---
 
 ## Notes
 Adding New People: Add new folders inside dataset/images/ and retrain.
