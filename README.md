@@ -9,7 +9,7 @@ project-folder/ ├── dataset/ │ └── images/ │ ├── George_W_
 
 ---
 
-##  Installation
+###  Installation
 
 1. Install Python 3.13.
 2. Install required libraries:
